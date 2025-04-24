@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tebak Kata</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            position: relative;
+            max-width: 90%;
+            margin: 20px auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .coins {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #instant-answer, #clue {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #007BFF;
+            cursor: pointer;
+        }
+
+        #instant-answer:disabled, #clue:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #invite-box {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #333;
+            background: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            button {
+                font-size: 16px;
+            }
+
+            input {
+                font-size: 16px;
+            }
+
+            #invite-box {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Tebak Kata</h1>
+        <div id="question">___</div>
+        <input type="text" id="answer" placeholder="Masukkan jawaban">
+        <button onclick="checkAnswer()">Kirim Jawaban</button>
+        <p id="feedback"></p>
+        <p class="coins">Koin Anda: <span id="coinCount">0</span></p>
+        <p id="instant-answer" onclick="useInstantAnswer()">Tukar 2 Koin untuk Jawaban Instan</p>
+        <p id="clue" onclick="getClue()">Minta Clue (1 Koin)</p>
+    </div>
+
+    <div id="invite-box">
+        <p>Kode Invite Anda: <b id="myCode"></b></p>
+        <input type="text" id="inviteInput" placeholder="Kode invite" style="font-size: 12px;">
+        <button style="font-size: 12px; padding: 5px;" onclick="submitInvite()">Klaim</button>
+    </div>
+
+    <script>
+        // Daftar pertanyaan dan jawaban
+        const questions = [
+            { question: "Apa yang memiliki banyak gigi tetapi tidak bisa menggigit?", answer: "sisir", clue: "Digunakan untuk rambut." },
+            { question: "Apa yang bisa ditangkap tapi tidak bisa dilempar?", answer: "flu", clue: "Biasa terjadi saat musim hujan." },
+            { question: "Semakin banyak dibagi semakin banyak dimiliki?", answer: "pengetahuan", clue: "Sering dibagikan di sekolah." },
+            { question: "Bisa dipegang tetapi tidak bisa dihitung?", answer: "cinta", clue: "Bisa dirasakan tapi tak terlihat." },
+            { question: "Tak dapat dipegang tapi bisa dihitung?", answer: "waktu", clue: "Terus berjalan tanpa henti." },
+            { question: "Apa yang selalu datang tapi tidak pernah tiba?", answer: "besok", clue: "Selalu di masa depan." },
+            { question: "Apa yang tidak hidup tapi tumbuh?", answer: "kristal", clue: "Terbuat dari mineral." },
+            { question: "Apa yang memiliki tangan tapi tidak bisa memegang?", answer: "jam", clue: "Sering dilihat di dinding." },
+            { question: "Apa yang berjalan tanpa kaki?", answer: "waktu", clue: "Selalu berjalan ke depan." },
+            { question: "Apa yang tidak punya mulut tapi bisa berbicara?", answer: "gema", clue: "Sering terdengar di gua." }
+        ];
+
+        // Variabel untuk pertanyaan saat ini, jumlah koin, dan kode invite
+        let currentQuestion = getRandomQuestion();
+        let coins = 0;
+        let usedInvite = false;
+        const myCode = generateInviteCode();
+
+        // Menampilkan pertanyaan dan kode invite
+        document.getElementById("question").textContent = currentQuestion.question;
+        document.getElementById("coinCount").textContent = coins;
+        document.getElementById("myCode").textContent = myCode;
+
+        // Fungsi untuk mendapatkan pertanyaan acak
+        function getRandomQuestion() {
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            return questions[randomIndex];
+        }
+
+        // Fungsi untuk memeriksa jawaban
+        function checkAnswer() {
+            const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+            const feedbackElement = document.getElementById("feedback");
+
+            if (userAnswer === currentQuestion.answer.toLowerCase()) {
+                feedbackElement.textContent = "Jawaban Benar!";
+                feedbackElement.style.color = "green";
+                coins++;
+                document.getElementById("coinCount").textContent = coins;
+                currentQuestion = getRandomQuestion();
+                document.getElementById("question").textContent = currentQuestion.question;
+            } else {
+                feedbackElement.textContent = "Jawaban Salah. Coba lagi!";
+                feedbackElement.style.color = "red";
+            }
+        }
+
+        // Fungsi untuk menggunakan jawaban instan (mengurangi 2 koin)
+        function useInstantAnswer() {
+            if (coins >= 2) {
+                coins -= 2;
+                document.getElementById("coinCount").textContent = coins;
+                alert("Jawaban Instan: " + currentQuestion.answer);
+            } else {
+                alert("Koin Anda tidak cukup!");
+            }
+        }
+
+        // Fungsi untuk meminta clue (mengurangi 1 koin)
+        function getClue() {
+            if (coins >= 1) {
+                coins -= 1;
+                document.getElementById("coinCount").textContent = coins;
+                alert("Clue: " + currentQuestion.clue);
+            } else {
+                alert("Koin Anda tidak cukup!");
+            }
+        }
+
+        // Fungsi untuk menghasilkan kode invite acak
+        function generateInviteCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return code;
+        }
+
+        // Fungsi untuk klaim kode invite
+        function submitInvite() {
+            const enteredCode = document.getElementById("inviteInput").value.trim();
+            if (enteredCode === myCode) {
+                if (!usedInvite) {
+                    alert("Selamat! Anda berhasil klaim kode invite.");
+                    usedInvite = true;
+                } else {
+                    alert("Kode invite sudah digunakan.");
+                }
+            } else {
+                alert("Kode invite tidak valid.");
+            }
+        }
+    </script>
+</body>
+</html>
